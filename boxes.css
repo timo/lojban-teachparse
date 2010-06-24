@@ -1,0 +1,40 @@
+body {
+    background-color: black;
+    color: white;
+}
+
+span {
+    position: relative;
+    top: 12px;
+    left: 4px;
+    border: 1px solid;
+    padding: 6px;
+    display: inline;
+    background-color: black;
+    font-size: xx-large;
+}
+
+span h1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 2px;
+    margin: -2px 0 0 -2px;
+    font-size: x-small;
+}
+
+.unparsed { color: gray; }
+
+.parsed { border-color: #55F; }
+
+.sumti { border-color: #F55; }
+
+.tanru { border-color: #FF5; }
+
+.gismu { border-color: #F5F; }
+
+.free {
+    position: relative;
+    top: 18px;
+    left: -4px;
+}
