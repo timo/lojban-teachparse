@@ -42,7 +42,6 @@ def call_vlatai(text):
 def selmaho(text):
   makfa = subprocess.Popen(["makfa", "selmaho", text], stdout=subprocess.PIPE)
   res = makfa.stdout.read().strip().split()
-  print res
   word = res[0]
   selmaho = res[2]
   if "..." in selmaho:
@@ -50,5 +49,4 @@ def selmaho(text):
   else:
       selmaho = [selmaho]
   links = res[3:]
-  print (word, selmaho, links)
   return (word, selmaho, links)
