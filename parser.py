@@ -8,8 +8,11 @@ class Token(object):
             self.typ = camxes.selmaho(word)[1][0]
         self.word = word
     
-    def __str__(self):
+    def __repr__(self):
         return "(%s \"%s\") " % (self.typ, self.word)
+
+    def __str__(self):
+        return self.word
 
 class TokenStream(object):
     def __init__(self, text_or_tokens):
@@ -23,10 +26,14 @@ class TokenStream(object):
 
         self.pos = 0
 
+        self.iterator = iter(self.tokens)
+
     def __iter__(self):
-        for token in self.tokens:
-            yield token
-            self.pos += 1
+        return self
+
+    def next(self):
+        self.pos += 1
+        return self.iterator.next()
 
     def rest(self):
         return TokenStream(self.tokens[self.pos:])
@@ -39,36 +46,60 @@ class TokenStream(object):
 
 class Parser(object):
     def __init__(self, text):
-        self.ts = TokenStream(text)
+        self.ts = iter(TokenStream(text))
         self.output = ""
 
-    def render_tree(self, tree = None):
+    def next(self):
+        n = self.ts.next()
+        print n
+        return n
+
+    def explain(self, text):
+        self.output += "<div>" + self.render_tree() + "<br/></div>\n"
+        self.output += text + "<br/><br/>\n"
+
+    def render_tree(self, tree=None, indent=1):
         if tree is None:
             tree = ["text", ["parsed", self.tree], ["unparsed", self.ts.rest()]]
         elif not tree:
             return ""
         print "render tree ", tree
-        res = """<span class="%(type)s"><h1>%(type)s</h1>""" % {"type":tree[0]}
-        if isinstance(tree[1], (basestring, TokenStream)):
-            res += str(tree[1])
-        elif not tree[1]:
-            pass
+        if len(tree) == 1:
+            res = "    " * indent + """<span class="leaf">%s</span>\n""" % str(tree[0])
         else:
-            res += " ".join([self.render_tree(a) for a in tree[1:]])
-        res += """</span>"""
+            res = "    " * indent + """<span class="%(type)s"><h1>%(type)s</h1>\n""" % {"type":tree[0]}
+            if isinstance(tree[1], (basestring, TokenStream)):
+                res += "    " * (indent + 1) + str(tree[1]) + "\n"
+            else:
+                res += " ".join([self.render_tree(a, indent + 1) for a in tree[1:]])
+            res += "    " * indent + """</span>\n"""
 
         return res
 
     def __call__(self):
         self.tree = []
-        self.output += self.render_tree()
+        self.explain("Start with the text")
 
-        self.parse_sentence(self.tree)
+        self.parse_start(self.tree)
 
         return self.output
 
-    def parse_sentence(self, target):
-        pass
+    def parse_start(self, target):
+        nt = self.next()
+        if nt.typ in ["COI", "DOI"]:
+            newtarget = [nt.word]
+            target.extend(["free", newtarget])
+            self.explain("%s is a vocative and starts a free" % nt.word)
+            self.parse_sumti(newtarget, "vocative")
+
+    def parse_sumti(self, target, parent_rule=None):
+        nt = self.next()
+        if nt.typ.startswith("KOhA"):
+            print "adding a koha."
+            print self.tree
+            target[0] = target[0] + " " + nt.word
+            print self.tree
+            self.explain("%s is a prosumti" % nt.word)
 
 def parse(text):
     # TODO: sanitize input, use camxes/vlatai to split into words?
