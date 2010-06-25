@@ -1,40 +1,55 @@
 body {
-    background-color: black;
-    color: white;
+  background-color: black;
+  color: white;
 }
 
-span {
-    position: relative;
-    top: 12px;
-    left: 4px;
-    border: 1px solid;
-    padding: 6px;
-    display: inline;
-    background-color: black;
-    font-size: xx-large;
+.example {
+  white-space: nowrap;
+  padding: 1em;
 }
 
-span h1 {
-    position: absolute;
-    top: 0;
-    left: 0;
-    padding: 2px;
-    margin: -2px 0 0 -2px;
-    font-size: x-small;
+.example span {
+  position: relative;
+  top: .4em;
+  left: .1em;
+  height: 2em;
+  padding: 3px;
+  margin-right: 5px;
 }
+
+.example span {
+  border-width: 1px;
+  border-style: solid;
+  background-color: black;
+  font-size: xx-large;
+}
+
+span:before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  padding: 2px;
+  margin: -2px 0 0 -2px;
+  font-size: x-small;
+}
+
 
 .unparsed { color: gray; }
+.unparsed:before {content: "Unparsed Text";}
 
 .parsed { border-color: #55F; }
+.parsed:before {content: "Parsed Text";}
 
 .sumti { border-color: #F55; }
+.sumti:before {content: "sumti";}
+
 
 .tanru { border-color: #FF5; }
+.tanru:before {content: "tanru";}
+
 
 .gismu { border-color: #F5F; }
+.gismu:before {content: "gismu";}
 
-.free {
-    position: relative;
-    top: 18px;
-    left: -4px;
-}
+.free { border-color: #AFF;}
+.free:before {content: "free";}
