@@ -92,9 +92,9 @@ eofToken = Token("EOF", "")
 
 class TokenStream(object):
     def __init__(self, text_or_tokens):
+        self.tokens = []
         if isinstance(text_or_tokens, basestring):
             words = [camxes.call_vlatai(word) for word in text_or_tokens.split(" ")]
-            self.tokens = []
             for word in words:
                 self.tokens.append(Token(word[1], word[2]))
         elif isinstance(text_or_tokens, list):
@@ -127,10 +127,16 @@ class TokenStream(object):
         return TokenStream(self.tokens[:self.pos])
 
     def __str__(self):
-        return " ".join(map(str, self.tokens))
+        try:
+            return " ".join(map(str, self.tokens))
+        except:
+            return "uninitialized TokenStream"
 
     def __repr__(self):
-        return self.tokens.__repr__()
+        try:
+            return "<TokenStream of %s>" % self.tokens.__repr__()
+        except:
+            return "<TokenStream uninitialized>"
 
 class Parser(object):
     def __init__(self, text):
@@ -171,13 +177,15 @@ class Parser(object):
                 newtarget = Node("free", nt.word)
                 target.extend(newtarget)
                 self.explain("%s is a vocative and starts a free" % nt.word)
-                self.parse_sumti(newtarget, "vocative")
+                if self.parse_sumti(newtarget, "vocative"):
+                    self.parse_after_sumti(newtarget, "vocative")
             elif nt.typ in ["LE", "LA"]:
                 self.next()
                 newtarget = Node("sumti", nt.word)
                 target.extend(newtarget)
                 self.explain("%s is a gadri and starts a sumti." % nt.word)
-                self.parse_sumti(newtarget, "gadri")
+                if self.parse_sumti(newtarget, "gadri"):
+                    self.parse_after_sumti(newtarget, "gadri")
 
     def parse_sumti(self, target, parent_rule=None):
         nt = self.peek()
@@ -189,15 +197,16 @@ class Parser(object):
         elif nt.typ == "cmene" and parent_rule in ["vocative", "gadri"]:
             target.extend(nt.word)
             self.next()
-            self.explain("%s in a cmevla (name-word). It gets eaten by the vocative." % nt.word)
+            if parent_rule == "gadri":
+                self.explain("%s in a cmevla (name-word). It gets eaten by the gadri before it." % nt.word)
+            else:
+                self.explain("%s in a cmevla (name-word). It gets eaten by the vocative." % nt.word)
             self.parse_cmene(target, "cmene")
         else:
             print "parse_sumti hit thin air: %r" % (nt, )
-            return
-
-        self.parse_after_sumti(target, "sumti")
-        print "parse after sumti has finished"
-        print self.tree
+            return False
+        
+        return True
     
     def parse_cmene(self, target, parent_rule=None):
         nt = self.peek()
@@ -222,7 +231,8 @@ class Parser(object):
             newt = Node("subsumti", nt.word)
             target.extend(newt)
             self.explain("%s is in selma'o GOI, which append a sumti to a sumti." % nt.word)
-            self.parse_sumti(newt, "subsumti")
+            if self.parse_sumti(newt, "subsumti"):
+                self.parse_after_sumti(newt, "subsumti")
             return True
         return False
 
