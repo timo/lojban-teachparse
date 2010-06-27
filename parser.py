@@ -60,10 +60,10 @@ class Tree(object):
         return res
 
     def __str__(self):
-        return """    <span class="text">
+        return """    <span class="example">
 %(parsed)s
         <span class="unparsed">
-
+%(unparsed)s
         </span>
     </span>
 """ % {"parsed": self.render(self.tree),
@@ -146,8 +146,6 @@ class Parser(object):
 
     def next(self):
         n = self.ts.next()
-        print "next word: %r" % n
-        traceback.print_stack()
         return n
 
     def peek(self):
@@ -156,8 +154,7 @@ class Parser(object):
     def explain(self, text):
         add = str(self.tree) + "<br/>\n"
         add += text + "<br/><br/>\n"
-        print add
-        #self.output += add
+        self.output += add
 
     def __call__(self):
         treenode = Node("parsed", None)
@@ -186,6 +183,11 @@ class Parser(object):
                 self.explain("%s is a gadri and starts a sumti." % nt.word)
                 if self.parse_sumti(newtarget, "gadri"):
                     self.parse_after_sumti(newtarget, "gadri")
+            elif nt.typ == "EOF":
+                pass
+            else:
+                self.next()
+                self.explain("i apologize, but i don't know what to do with %r at this place :(" % nt)
 
     def parse_sumti(self, target, parent_rule=None):
         nt = self.peek()

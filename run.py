@@ -10,8 +10,8 @@ def main():
 
 @app.route("/explain", methods=["POST", "GET"])
 def explain():
-    #text = request.form["text"] if "text" in request.form else request.args.get("text", "coi do lo gerku ui ku klama lo zarci")
-    p = Parser("coi do lo gerku ku klama lo zarci")
+    text = request.form["text"] if "text" in request.form else request.args.get("text", "coi do lo gerku ui ku klama lo zarci")
+    p = Parser(text)
     return """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd"> 
 <html> 
     <head> 
