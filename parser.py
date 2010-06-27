@@ -7,6 +7,71 @@ try:
 except:
     pass
 
+class Node(object):
+    def __init__(self, typ, content):
+        self.typ = typ
+        self.content = content
+
+    def extend(self, other):
+        if isinstance(self.content, list):
+            self.content.append(other)
+        elif isinstance(self.content, Node):
+            self.content = [self.content, other]
+        elif isinstance(self.content, basestring):
+            if isinstance(other, basestring):
+                self.content += " " + other
+            else:
+                self.content = [self.content, other]
+        elif not self.content:
+            self.content = other
+
+    def __repr__(self):
+        return "<Node %s %r>" % (self.typ, self.content)
+
+class Tree(object):
+    def __init__(self, tree, stream):
+        self.tree = tree
+        self.stream = stream
+
+    def render(self, tree=None, indent=3):
+        if not tree:
+            return ""
+
+        res = "    " * indent;
+
+        if isinstance(tree, basestring):
+            res += tree + "\n"
+        elif isinstance(tree.content, (basestring, Token)):
+            res += """<span class="%s">%s</span>\n""" % (tree.typ, str(tree.content))
+        elif not tree.content:
+            res += """<span class="%s"></span>""" % (tree.typ)
+        elif isinstance(tree.content, list):
+            res += """<span class="%(type)s">\n""" % {"type":tree.typ}
+            if isinstance(tree.content, (basestring, TokenStream, Token)):
+                res += "    " + str(tree.content) + "\n"
+            else:
+                res += " ".join([self.render(a, indent + 1) for a in tree.content])
+            res += "    " * indent + """</span>\n"""
+        elif isinstance(tree.content, Node):
+            res += self.render(tree.content, indent)
+        else:
+            raise Exception
+
+        return res
+
+    def __str__(self):
+        return """    <span class="text">
+%(parsed)s
+        <span class="unparsed">
+
+        </span>
+    </span>
+""" % {"parsed": self.render(self.tree),
+       "unparsed": str(self.stream.rest())}
+
+    def __repr__(self):
+        return "<Tree %r  %r>" % (self.tree, self.stream.rest())
+
 class Token(object):
     def __init__(self, typ, word):
         if typ.startswith(("gismu", "lujvo", "fu'ivla")):
@@ -71,6 +136,7 @@ class Parser(object):
     def __init__(self, text):
         self.ts = iter(TokenStream(text))
         self.output = ""
+        self.tree = Tree(None, None)
 
     def next(self):
         n = self.ts.next()
@@ -82,43 +148,17 @@ class Parser(object):
         return self.ts.peek()
 
     def explain(self, text):
-        add = self.render_tree() + "<br/>\n"
+        add = str(self.tree) + "<br/>\n"
         add += text + "<br/><br/>\n"
         print add
         #self.output += add
 
-    def render_tree(self, tree=None, indent=1):
-        if tree is None:
-            tree = ["example", ["parsed", self.tree], ["unparsed", self.ts.rest()]]
-            print "render tree ", tree
-        elif not tree:
-            return ""
-        
-        if isinstance(tree, list):
-            for part in tree:
-                if isinstance(part, list) and len(part) == 1 and isinstance(part[0], list):
-                    part.append(part.pop())
-        
-        if len(tree) == 1 and isinstance(tree[0], basestring):
-            res = "    " * indent + """%s\n""" % str(tree[0])
-        elif len(tree) == 1:
-            res = "    " * indent + """<span class="%(type)s">\n""" % {"type":tree[0]}
-            if isinstance(tree[1], (basestring, TokenStream)):
-                res += "    " * (indent + 1) + str(tree[1]) + "\n"
-            else:
-                res += " ".join([self.render_tree(a, indent + 1) for a in tree[1:]])
-            res += "    " * indent + """</span>\n"""
-
-        else:
-            raise Exception
-
-        return res
-
     def __call__(self):
-        self.tree = []
+        treenode = Node("parsed", None)
+        self.tree = Tree(treenode, self.ts)
         self.explain("Start with the text")
 
-        self.parse_start(self.tree)
+        self.parse_start(treenode)
 
         return self.output
 
@@ -128,14 +168,14 @@ class Parser(object):
             nt = self.peek()
             if nt.typ in ["COI", "DOI"]:
                 self.next()
-                newtarget = ["free", [nt.word]]
-                target.append(newtarget)
+                newtarget = Node("free", nt.word)
+                target.extend(newtarget)
                 self.explain("%s is a vocative and starts a free" % nt.word)
                 self.parse_sumti(newtarget, "vocative")
             elif nt.typ in ["LE", "LA"]:
                 self.next()
-                newtarget = ["sumti", [nt.word]]
-                target.append(newtarget)
+                newtarget = Node("sumti", nt.word)
+                target.extend(newtarget)
                 self.explain("%s is a gadri and starts a sumti." % nt.word)
                 self.parse_sumti(newtarget, "gadri")
 
@@ -143,28 +183,27 @@ class Parser(object):
         nt = self.peek()
 
         if nt.typ.startswith("KOhA"):
-            target[1][0] = target[1][0] + " " + nt.word
+            target.extend(nt.word)
             self.next()
             self.explain("%s is a prosumti" % nt.word)
         elif nt.typ == "cmene" and parent_rule in ["vocative", "gadri"]:
-            target[1][0] = target[1][0] + " " + nt.word
+            target.extend(nt.word)
             self.next()
             self.explain("%s in a cmevla (name-word). It gets eaten by the vocative." % nt.word)
             self.parse_cmene(target, "cmene")
         else:
             print "parse_sumti hit thin air: %r" % (nt, )
             return
- 
-        newt = []
-        target.append(newt)
-        if not self.parse_after_sumti(newt, "sumti"):
-            target.remove(newt)
+
+        self.parse_after_sumti(target, "sumti")
+        print "parse after sumti has finished"
+        print self.tree
     
     def parse_cmene(self, target, parent_rule=None):
         nt = self.peek()
         if nt.typ == "CMENE":
             self.next()
-            target[0] = target[0] + " " + nt.word
+            target.extend(nt.word)
             if parent_rule == "cmene":
                 self.explain("%s is a cmevla, too, and gets appended to the previous one." % nt.word)
             else:
@@ -175,8 +214,13 @@ class Parser(object):
         nt = self.peek()
         if nt.typ == "GOI": # pe and friends
             self.next()
-            newt = ["subsumti", [nt.word]]
-            target.append(newt)
+            print
+            print
+            print self.tree
+            print "parse_after_sumti appended", nt.word, "to", target
+            print
+            newt = Node("subsumti", nt.word)
+            target.extend(newt)
             self.explain("%s is in selma'o GOI, which append a sumti to a sumti." % nt.word)
             self.parse_sumti(newt, "subsumti")
             return True
