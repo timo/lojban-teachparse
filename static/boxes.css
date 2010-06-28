@@ -6,6 +6,7 @@ body {
 .example {
   white-space: nowrap;
   padding: 1em;
+  padding-bottom: 3em;
 }
 
 .example span {
@@ -43,6 +44,8 @@ span:before {
 .sumti { border-color: #F55; }
 .sumti:before {content: "sumti";}
 
+.subsumti { border-color: #555; }
+.subsumti:before {content: "subsumti";}
 
 .tanru { border-color: #FF5; }
 .tanru:before {content: "tanru";}

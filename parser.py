@@ -152,8 +152,8 @@ class Parser(object):
         return self.ts.peek()
 
     def explain(self, text):
-        add = str(self.tree) + "<br/>\n"
-        add += text + "<br/><br/>\n"
+        add = "<p>%s</p>" % text + "\n"
+        add += str(self.tree) + "<br/><br/><br/>\n"
         self.output += add
 
     def __call__(self):
@@ -183,6 +183,9 @@ class Parser(object):
                 self.explain("%s is a gadri and starts a sumti." % nt.word)
                 if self.parse_sumti(newtarget, "gadri"):
                     self.parse_after_sumti(newtarget, "gadri")
+            elif nt.typ.startswith("KOhA"):
+                if self.parse_sumti(target, "start"):
+                    self.parse_after_sumti(target, "sumti")
             elif nt.typ == "EOF":
                 pass
             else:
@@ -206,7 +209,7 @@ class Parser(object):
             self.parse_cmene(target, "cmene")
         else:
             print "parse_sumti hit thin air: %r" % (nt, )
-            return False
+            return None
         
         return True
     
