@@ -14,6 +14,7 @@ htmltempl = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "h
         <link rel="stylesheet" href="/static/boxes.css" type="text/css">
     </head>
     <body>
+    <form method="GET" action="explain"><input name="text"/><input type="submit"/></form><br/><br/>
 %s
     </body>
 </html>"""
@@ -23,7 +24,7 @@ def rendersugs(sent):
 
 @app.route("/")
 def main():
-    return htmltempl % ("""<form method="GET" action="explain"><input name="text"/><input type="submit"/></form>""")
+    return htmltempl % ("""input some (very) simple lojbanic text and see what happens!""")
 
 @app.route("/explain", methods=["POST", "GET"])
 def explain():
