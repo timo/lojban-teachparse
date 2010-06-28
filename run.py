@@ -19,7 +19,7 @@ htmltempl = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "h
 </html>"""
 
 def rendersugs(sent):
-    return ["""<li>%r</li>""" % sent.sug]
+    return "".join("""<li>%s</li>""" % sent.sug)
 
 @app.route("/")
 def main():
