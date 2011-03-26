@@ -34,7 +34,7 @@ def explain():
     
     # run the text throug lojbansuggest to find out if it parses at all and has common newbie mistakes
     try:
-        lt = lojbantext(text)
+        lt = LojbanText(text)
 
         if len(lt.items) > 1:
             sentencelist = "".join(["""<li><a href="/explain?text=%(textenc)s">%(text)s</a></li>\n""" % {"textenc": quote(sent.td), "text": sent.td} for sent in lt.items])
