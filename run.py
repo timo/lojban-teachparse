@@ -2,7 +2,7 @@ from flask import Flask, request
 
 from parser import Parser
 
-from suggest import lojbantext, lojbansentence, unparsabletext
+from lojbansuggest.suggest import LojbanText, LojbanSentence, UnparsableText
 from urllib2 import quote
 
 app = Flask(__name__)
